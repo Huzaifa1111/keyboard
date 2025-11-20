@@ -1,48 +1,42 @@
-@font-face {
-  font-family: 'Arabic-Regular';
-  src: url('/fonts/Arabic-Regular.ttf') format('truetype');
-  font-display: swap;
-}
+  @font-face {
+    font-family: 'HuzaifaArabic';
+    src: url('/fonts/Arabic-Regular.ttf') format('truetype');
+  }
 
-body {
-  font-family: 'Arabic-Regular', sans-serif;
-  background: #f8f9fa;
-  margin: 0;
-}
+  body {
+    font-family: 'Arabic-Regular', sans-serif;
+    background: #f8f9fa;
+    margin: 0;
+  }
 
-/* Ensure all elements use the Arabic font */
-* {
-  font-family: 'Arabic-Regular', sans-serif;
-}
-
-/* Diacritic positioning */
-.diacritic-64e { /* Fatha َ */
-  position: relative;
-  top: -5px;
-}
-.form-medial .diacritic-64e {
-  top: -3px;
-}
-.diacritic-64f { /* Damma ُ */
-  position: relative;
-  top: -4px;
-}
-.diacritic-650 { /* Kasra ِ */
-  position: relative;
-  bottom: -2px;
-}
-.diacritic-651 { /* Sukun ْ */
-  position: relative;
-  top: -3px;
-}
-.diacritic-652 { /* Shadda ّ */
-  position: relative;
-  top: -6px;
-}
-.letter-628 .diacritic-652 { /* Shadda on ب */
-  top: -5px;
-  left: 119px;
-}
-.form-initial .diacritic-652 {
-  top: -4px;
-}
+  /* Diacritic positioning */
+  .diacritic-64e { /* Fatha َ */
+    position: relative;
+    top: -5px;
+  }
+  .form-medial .diacritic-64e {
+    top: -3px;
+  }
+  .diacritic-64f { /* Damma ُ */
+    position: relative;
+    top: -4px;
+  }
+  .diacritic-650 { /* Kasra ِ */
+    position: relative;
+    bottom: -2px;
+  }
+  .diacritic-651 { /* Sukun ْ */
+    position: relative;
+    top: -3px;
+  }
+  .diacritic-652 { /* Shadda ّ */
+    position: relative;
+    top: -6 px;
+  }
+  .letter-628 .diacritic-652 { /* Shadda on ب */
+    top: -5px;
+    left: 119px;
+  }
+  .form-initial .diacritic-652 {
+    top: -4px;
+  }

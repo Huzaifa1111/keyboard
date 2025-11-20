@@ -273,78 +273,88 @@ export default function Keyboard({ fontFamily = "HuzaifaArabic", onType } = {}) 
 
   // Render
   const letterButtons = Object.keys(LETTERS);
-  return (
-    <div className="p-4" style={{ fontFamily }}>
-      <input
-        ref={inputRef}
-        type="text"
-        value={inputValue} // Controlled input
-        placeholder="Paste Arabic text here..."
-        onChange={handleInputChange} // Handle typing
-        onPaste={handlePaste}
-        className="mb-4 p-2 border rounded w-full text-right"
-        style={{ 
-          fontFamily: `${fontFamily}, sans-serif`,
-          direction: "rtl",
-          fontSize: "18px"
-        }}
-      />
-      <div
-        dir="rtl"
-        className="mb-4 p-4 border rounded min-h-[80px] text-right text-3xl bg-white"
-        style={{ fontFamily, whiteSpace: "pre-wrap" }}
-      >
-        {display.length > 0 ? display : "اكتب هنا..."}
-      </div>
-
-      <div className="flex flex-wrap gap-2 mb-3">
-        {DIACRITICS.map((d) => (
-          <button
-            key={d.name}
-            onClick={() => addDiacritic(d.char)}
-            className="px-3 py-2 border rounded bg-yellow-100 hover:bg-yellow-200 text-xl"
-          >
-            {d.char}
-          </button>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-8 gap-2 mb-3">
-        {letterButtons.map((ch) => (
-          <button
-            key={ch}
-            onClick={() => addLetter(ch)}
-            className="p-3 border rounded bg-blue-100 hover:bg-blue-200 text-2xl"
-          >
-            {ch}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap gap-2 mb-3">
-        {NUMBERS.map((n) => (
-          <button key={n} onClick={() => addSymbol(n)} className="px-3 py-2 border rounded bg-green-100">
-            {n}
-          </button>
-        ))}
-        {SYMBOLS.map((s) => (
-          <button key={s} onClick={() => addSymbol(s)} className="px-3 py-2 border rounded bg-purple-100">
-            {s}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex gap-3">
-        <button onClick={() => addSymbol(" ")} className="px-6 py-2 border rounded bg-gray-200">
-          Space
-        </button>
-        <button onClick={backspace} className="px-4 py-2 border rounded bg-orange-200">
-          Backspace
-        </button>
-        <button onClick={clearAll} className="px-4 py-2 border rounded bg-red-200">
-          Clear
-        </button>
-      </div>
+  // In the return section of Keyboard.js, update the input and display areas:
+return (
+  <div className="p-4" style={{ fontFamily }}>
+    <input
+      ref={inputRef}
+      type="text"
+      value={inputValue}
+      placeholder="Paste Arabic text here or type using the keyboard below..."
+      onChange={handleInputChange}
+      onPaste={handlePaste}
+      className="mb-4 p-4 border-2 border-gray-300 rounded-lg w-full text-right"
+      style={{ 
+        fontFamily: `${fontFamily}, sans-serif`,
+        direction: "rtl",
+        fontSize: "24px", // Larger font size
+        minHeight: "60px" // Larger input field
+      }}
+    />
+    
+    {/* Main display area with large font */}
+    <div
+      dir="rtl"
+      className="mb-6 p-6 border-2 border-blue-300 rounded-lg min-h-[120px] text-right bg-blue-50 shadow-md"
+      style={{ 
+        fontFamily, 
+        whiteSpace: "pre-wrap",
+        fontSize: "42px", // Even larger font for main display
+        lineHeight: "1.5"
+      }}
+    >
+      {display.length > 0 ? display : "اكتب هنا..."}
     </div>
-  );
+
+    {/* Rest of the buttons remain the same */}
+    <div className="flex flex-wrap gap-2 mb-3">
+      {DIACRITICS.map((d) => (
+        <button
+          key={d.name}
+          onClick={() => addDiacritic(d.char)}
+          className="px-3 py-2 border rounded bg-yellow-100 hover:bg-yellow-200 text-xl"
+        >
+          {d.char}
+        </button>
+      ))}
+    </div>
+
+    <div className="grid grid-cols-8 gap-2 mb-3">
+      {letterButtons.map((ch) => (
+        <button
+          key={ch}
+          onClick={() => addLetter(ch)}
+          className="p-3 border rounded bg-blue-100 hover:bg-blue-200 text-2xl"
+        >
+          {ch}
+        </button>
+      ))}
+    </div>
+
+    <div className="flex flex-wrap gap-2 mb-3">
+      {NUMBERS.map((n) => (
+        <button key={n} onClick={() => addSymbol(n)} className="px-3 py-2 border rounded bg-green-100">
+          {n}
+        </button>
+      ))}
+      {SYMBOLS.map((s) => (
+        <button key={s} onClick={() => addSymbol(s)} className="px-3 py-2 border rounded bg-purple-100">
+          {s}
+        </button>
+      ))}
+    </div>
+
+    <div className="flex gap-3">
+      <button onClick={() => addSymbol(" ")} className="px-6 py-2 border rounded bg-gray-200">
+        Space
+      </button>
+      <button onClick={backspace} className="px-4 py-2 border rounded bg-orange-200">
+        Backspace
+      </button>
+      <button onClick={clearAll} className="px-4 py-2 border rounded bg-red-200">
+        Clear
+      </button>
+    </div>
+  </div>
+);
 }
