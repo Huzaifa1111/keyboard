@@ -1,0 +1,61 @@
+/* [project]/app/globals.css [app-client] (css) */
+@font-face {
+  font-family: HuzaifaArabic;
+  src: url("/fonts/Arabic-Regular.ttf") format("truetype");
+}
+
+body {
+  background: #f8f9fa;
+  margin: 0;
+  font-family: HuzaifaArabic, sans-serif;
+}
+
+.diacritic-64e {
+  position: relative;
+  top: -5px;
+}
+
+.with-standing-fatha .diacritic-64e {
+  position: relative;
+  top: -8px;
+  right: 2px;
+}
+
+.form-medial .diacritic-64e {
+  top: -3px;
+}
+
+.diacritic-64f {
+  position: relative;
+  top: -4px;
+}
+
+.diacritic-650 {
+  position: relative;
+  bottom: -2px;
+}
+
+.diacritic-651 {
+  position: relative;
+  top: -3px;
+}
+
+.diacritic-652 {
+  position: relative;
+  top: -6px;
+}
+
+.letter-628 .diacritic-652 {
+  top: -5px;
+  left: 119px;
+}
+
+.form-initial .diacritic-652 {
+  top: -4px;
+}
+
+.ligature-allah {
+  font-feature-settings: "liga" 1;
+}
+
+/*# sourceMappingURL=app_globals_css_bad6b30c._.single.css.map*/

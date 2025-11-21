@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useRef } from "react";
 
@@ -55,12 +56,24 @@ const DIACRITICS = [
   { name: "Tanween Kasra", char: "ٍ" },
 ];
 
-const DIACRITIC_ORDER = { "ّ": 0, "ٓ": 1, "َ": 2, "ُ": 3, "ِ": 4, "ْ": 5, "ً": 6, "ٌ": 7, "ٍ": 8 };
+// Add special diacritics with separate entry for standing fatha
+const SPECIAL_DIACRITICS = [
+  { name: "Standing Fatha", char: "ﭐ", description: "For Alif (ا)", specialType: "standingFatha" },
+  { name: "Fatha", char: "َ" },
+  { name: "Damma", char: "ُ" },
+  { name: "Kasra", char: "ِ" },
+  { name: "Sukun", char: "ْ" },
+  { name: "Shadda", char: "ّ" },
+  { name: "Maddah", char: "ٓ" },
+];
+
+const DIACRITIC_ORDER = { "ّ": 0, "ٓ": 1, "َ": 2, "ُ": 3, "ِ": 4, "ْ": 5, "ً": 6, "ٌ": 7, "ٍ": 8, "ﭐ": 2 };
 
 const NUMBERS = ["١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩", "٠"];
 const SYMBOLS = ["،", "؛", "؟", ".", "!", "-", "(", ")", "«", "»"];
 const ALLAH_LIGATURE = "ﷲ"; // U+FDF2
 const ALLAH_SEQUENCE = ["ا", "ل", "ل", "ه"];
+const STANDING_FATHA = "ﭐ"; // U+FB50 - Alif with standing fatha
 
 /* token structure:
    { type: 'letter', char: 'ب', diacritics: [] }
@@ -130,17 +143,36 @@ export default function Keyboard({ fontFamily = "HuzaifaArabic", onType } = {}) 
 
       // Create diacritic elements with classes
       const sortedDiacs = sortDiacritics([...(t.diacritics || [])]);
-      const diacElements = sortedDiacs.map((d, j) => (
-        <span key={j} className={`diacritic-${d.charCodeAt(0).toString(16)}`}>
-          {d}
-        </span>
-      ));
+      
+      // Special handling for standing Fatha on Alif
+      const isAlif = t.char === "ا";
+      const hasStandingFatha = sortedDiacs.includes(STANDING_FATHA);
+      const hasRegularFatha = sortedDiacs.includes("َ");
+      
+      const diacElements = sortedDiacs.map((d, j) => {
+        // Special class for standing fatha
+        if (d === STANDING_FATHA) {
+          return (
+            <span key={j} className="diacritic-standing-fatha">
+              {d}
+            </span>
+          );
+        }
+        
+        // Regular diacritics
+        const diacriticClass = `diacritic-${d.charCodeAt(0).toString(16)}`;
+        return (
+          <span key={j} className={diacriticClass}>
+            {d}
+          </span>
+        );
+      });
 
       const hasShadda = sortedDiacs.includes("ّ");
       const letterClass = `letter-${t.char.charCodeAt(0).toString(16)}`;
 
       elements.push(
-        <span key={i} className={`form-${formClass} ${letterClass} ${hasShadda ? 'with-shadda' : ''}`}>
+        <span key={i} className={`form-${formClass} ${letterClass} ${hasShadda ? 'with-shadda' : ''} ${hasStandingFatha ? 'with-standing-fatha' : ''}`}>
           {LETTERS[t.char].base}{diacElements}
         </span>
       );
@@ -166,20 +198,49 @@ export default function Keyboard({ fontFamily = "HuzaifaArabic", onType } = {}) 
   };
 
   // Add diacritic
-  const addDiacritic = (dChar) => {
+  const addDiacritic = (dChar, specialType = null) => {
     const newTokens = [...tokens];
+    
+    // Special handling for standing fatha - only apply to Alif
+    if (specialType === "standingFatha") {
+      for (let i = newTokens.length - 1; i >= 0; i--) {
+        if (newTokens[i].type === "letter" && newTokens[i].char === "ا") {
+          // Replace any existing regular fatha with standing fatha
+          const filteredDiacritics = (newTokens[i].diacritics || []).filter(d => d !== "َ");
+          newTokens[i].diacritics = sortDiacritics([...filteredDiacritics, STANDING_FATHA]);
+          setTokens(newTokens);
+          setInputValue(prev => prev + STANDING_FATHA);
+          rebuildDisplay(newTokens);
+          return;
+        }
+      }
+      // If no Alif found, add as symbol
+      newTokens.push({ type: "symbol", char: STANDING_FATHA });
+      setTokens(newTokens);
+      setInputValue(prev => prev + STANDING_FATHA);
+      rebuildDisplay(newTokens);
+      return;
+    }
+    
+    // Regular diacritic handling
     for (let i = newTokens.length - 1; i >= 0; i--) {
       if (newTokens[i].type === "letter") {
-        newTokens[i].diacritics = sortDiacritics([...(newTokens[i].diacritics || []), dChar]);
+        // If adding regular fatha to Alif that has standing fatha, replace it
+        if (dChar === "َ" && newTokens[i].char === "ا" && newTokens[i].diacritics?.includes(STANDING_FATHA)) {
+          const filteredDiacritics = (newTokens[i].diacritics || []).filter(d => d !== STANDING_FATHA);
+          newTokens[i].diacritics = sortDiacritics([...filteredDiacritics, dChar]);
+        } else {
+          newTokens[i].diacritics = sortDiacritics([...(newTokens[i].diacritics || []), dChar]);
+        }
         setTokens(newTokens);
-        setInputValue(prev => prev + dChar); // Update input value
+        setInputValue(prev => prev + dChar);
         rebuildDisplay(newTokens);
         return;
       }
     }
     newTokens.push({ type: "symbol", char: dChar });
     setTokens(newTokens);
-    setInputValue(prev => prev + dChar); // Update input value
+    setInputValue(prev => prev + dChar);
     rebuildDisplay(newTokens);
   };
 
@@ -228,7 +289,7 @@ export default function Keyboard({ fontFamily = "HuzaifaArabic", onType } = {}) 
       if (LETTERS[char]) {
         newTokens.push({ type: "letter", char, diacritics: [] });
         lastLetterIndex = newTokens.length - 1;
-      } else if (DIACRITICS.some(d => d.char === char)) {
+      } else if (DIACRITICS.some(d => d.char === char) || char === STANDING_FATHA) {
         if (lastLetterIndex >= 0) {
           newTokens[lastLetterIndex].diacritics = sortDiacritics([...(newTokens[lastLetterIndex].diacritics || []), char]);
         } else {
@@ -256,7 +317,7 @@ export default function Keyboard({ fontFamily = "HuzaifaArabic", onType } = {}) 
       if (LETTERS[char]) {
         newTokens.push({ type: "letter", char, diacritics: [] });
         lastLetterIndex = newTokens.length - 1;
-      } else if (DIACRITICS.some(d => d.char === char)) {
+      } else if (DIACRITICS.some(d => d.char === char) || char === STANDING_FATHA) {
         if (lastLetterIndex >= 0) {
           newTokens[lastLetterIndex].diacritics = sortDiacritics([...(newTokens[lastLetterIndex].diacritics || []), char]);
         } else {
@@ -273,88 +334,105 @@ export default function Keyboard({ fontFamily = "HuzaifaArabic", onType } = {}) 
 
   // Render
   const letterButtons = Object.keys(LETTERS);
-  // In the return section of Keyboard.js, update the input and display areas:
-return (
-  <div className="p-4" style={{ fontFamily }}>
-    <input
-      ref={inputRef}
-      type="text"
-      value={inputValue}
-      placeholder="Paste Arabic text here or type using the keyboard below..."
-      onChange={handleInputChange}
-      onPaste={handlePaste}
-      className="mb-4 p-4 border-2 border-gray-300 rounded-lg w-full text-right"
-      style={{ 
-        fontFamily: `${fontFamily}, sans-serif`,
-        direction: "rtl",
-        fontSize: "24px", // Larger font size
-        minHeight: "60px" // Larger input field
-      }}
-    />
-    
-    {/* Main display area with large font */}
-    <div
-      dir="rtl"
-      className="mb-6 p-6 border-2 border-blue-300 rounded-lg min-h-[120px] text-right bg-blue-50 shadow-md"
-      style={{ 
-        fontFamily, 
-        whiteSpace: "pre-wrap",
-        fontSize: "42px", // Even larger font for main display
-        lineHeight: "1.5"
-      }}
-    >
-      {display.length > 0 ? display : "اكتب هنا..."}
-    </div>
+  
+  return (
+    <div className="p-4" style={{ fontFamily }}>
+      <input
+        ref={inputRef}
+        type="text"
+        value={inputValue}
+        placeholder="Paste Arabic text here or type using the keyboard below..."
+        onChange={handleInputChange}
+        onPaste={handlePaste}
+        className="mb-4 p-4 border-2 border-gray-300 rounded-lg w-full text-right"
+        style={{ 
+          fontFamily: `${fontFamily}, sans-serif`,
+          direction: "rtl",
+          fontSize: "24px",
+          minHeight: "60px"
+        }}
+      />
+      
+      {/* Main display area with large font */}
+      <div
+        dir="rtl"
+        className="mb-6 p-6 border-2 border-blue-300 rounded-lg min-h-[120px] text-right bg-blue-50 shadow-md"
+        style={{ 
+          fontFamily, 
+          whiteSpace: "pre-wrap",
+          fontSize: "42px",
+          lineHeight: "2"  // Increased line spacing
+        }}
+      >
+        {display.length > 0 ? display : "اكتب هنا..."}
+      </div>
 
-    {/* Rest of the buttons remain the same */}
-    <div className="flex flex-wrap gap-2 mb-3">
-      {DIACRITICS.map((d) => (
-        <button
-          key={d.name}
-          onClick={() => addDiacritic(d.char)}
-          className="px-3 py-2 border rounded bg-yellow-100 hover:bg-yellow-200 text-xl"
-        >
-          {d.char}
-        </button>
-      ))}
-    </div>
+      {/* Special Diacritics Row - Including Standing Fatha */}
+      <div className="mb-3">
+        <h3 className="text-lg font-semibold mb-2">Special Diacritics:</h3>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {SPECIAL_DIACRITICS.map((d, index) => (
+            <button
+              key={`${d.name}-${index}`}
+              onClick={() => addDiacritic(d.char, d.specialType)}
+              className="px-3 py-2 border rounded bg-yellow-100 hover:bg-yellow-200 text-xl"
+              title={d.description || d.name}
+            >
+              {d.char} {d.description && <span className="text-xs">({d.description})</span>}
+            </button>
+          ))}
+        </div>
+      </div>
 
-    <div className="grid grid-cols-8 gap-2 mb-3">
-      {letterButtons.map((ch) => (
-        <button
-          key={ch}
-          onClick={() => addLetter(ch)}
-          className="p-3 border rounded bg-blue-100 hover:bg-blue-200 text-2xl"
-        >
-          {ch}
-        </button>
-      ))}
-    </div>
+      {/* Regular Diacritics Row */}
+      <div className="flex flex-wrap gap-2 mb-3">
+        {DIACRITICS.map((d) => (
+          <button
+            key={d.name}
+            onClick={() => addDiacritic(d.char)}
+            className="px-3 py-2 border rounded bg-yellow-100 hover:bg-yellow-200 text-xl"
+          >
+            {d.char}
+          </button>
+        ))}
+      </div>
 
-    <div className="flex flex-wrap gap-2 mb-3">
-      {NUMBERS.map((n) => (
-        <button key={n} onClick={() => addSymbol(n)} className="px-3 py-2 border rounded bg-green-100">
-          {n}
-        </button>
-      ))}
-      {SYMBOLS.map((s) => (
-        <button key={s} onClick={() => addSymbol(s)} className="px-3 py-2 border rounded bg-purple-100">
-          {s}
-        </button>
-      ))}
-    </div>
+      <div className="grid grid-cols-8 gap-2 mb-3">
+        {letterButtons.map((ch) => (
+          <button
+            key={ch}
+            onClick={() => addLetter(ch)}
+            className="p-3 border rounded bg-blue-100 hover:bg-blue-200 text-2xl"
+          >
+            {ch}
+          </button>
+        ))}
+      </div>
 
-    <div className="flex gap-3">
-      <button onClick={() => addSymbol(" ")} className="px-6 py-2 border rounded bg-gray-200">
-        Space
-      </button>
-      <button onClick={backspace} className="px-4 py-2 border rounded bg-orange-200">
-        Backspace
-      </button>
-      <button onClick={clearAll} className="px-4 py-2 border rounded bg-red-200">
-        Clear
-      </button>
+      <div className="flex flex-wrap gap-2 mb-3">
+        {NUMBERS.map((n) => (
+          <button key={n} onClick={() => addSymbol(n)} className="px-3 py-2 border rounded bg-green-100">
+            {n}
+          </button>
+        ))}
+        {SYMBOLS.map((s) => (
+          <button key={s} onClick={() => addSymbol(s)} className="px-3 py-2 border rounded bg-purple-100">
+            {s}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex gap-3">
+        <button onClick={() => addSymbol(" ")} className="px-6 py-2 border rounded bg-gray-200">
+          Space
+        </button>
+        <button onClick={backspace} className="px-4 py-2 border rounded bg-orange-200">
+          Backspace
+        </button>
+        <button onClick={clearAll} className="px-4 py-2 border rounded bg-red-200">
+          Clear
+        </button>
+      </div>
     </div>
-  </div>
-);
+  );
 }
